@@ -212,7 +212,7 @@ else:
 
     if selectuser == 'Paid':
         high_paid_df=paid_vip[['User_ID','Regristration Date']].reset_index(drop=True)
-        listening_high_paid=paid_vip[['User_ID','Listening Date','Category']].reset_index(drop=True)
+        listening_high_paid=paid_vip[['User_ID','Playlist Name','PlaylistID (PK)','Actual Duration (min)','Listening Date','Category']].reset_index(drop=True)
         # order_high_paid=order     
         # high_paid_df
         # listening_high_paid
@@ -431,6 +431,8 @@ else:
             .reset_index(drop=True)
             .explode('consequents')
             .reset_index(drop=True))
+    content=st.selectbox('Chọn cuốn sách đã đọc',df_association_rules['antecedents'].unique())
 
-    df_association_rules[['antecedents','consequents','lift']]
-    
+    list_bundle= df_association_rules[df_association_rules['antecedents'].str.contains(content)]
+    list_bundle=list_bundle[['consequents','lift']]
+    list_bundle

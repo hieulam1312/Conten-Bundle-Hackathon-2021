@@ -40,24 +40,24 @@ def select(selectuser):
         st.write(Cate)
         st.write(Cate.groupby('User_ID'))
 
-        col1, col2 = st.columns(2)
-        with col1:
-            dura = loyal.groupby(['Category','Gender']).sum('Actual Duration (min)')['Actual Duration (min)'].unstack()
-            dura['Other'] = dura['no information']+dura['other'].fillna(0)
-            dura = dura.drop(columns = ['no information','other'])
-            dura.columns = ['Female','Male','Other']
-            dura = dura.transpose()
-            dura
+        # col1, col2 = st.columns(2)
+        # with col1:
+        #     dura = loyal.groupby(['Category','Gender']).sum('Actual Duration (min)')['Actual Duration (min)'].unstack()
+        #     dura['Other'] = dura['no information']+dura['other'].fillna(0)
+        #     dura = dura.drop(columns = ['no information','other'])
+        #     dura.columns = ['Female','Male','Other']
+        #     dura = dura.transpose()
+        #     dura
 
-        dura = loyal.groupby(['Category','Gender']).sum('Actual Duration (min)')['Actual Duration (min)'].unstack()
-        dura['Other'] = dura['no information']+dura['other'].fillna(0)
-        dura = dura.drop(columns = ['no information','other'])
-        dura.columns = ['Female','Male','Other']
-        cols = dura.columns
-        chart = dura
-        chart[cols] = dura[cols].div(dura[cols].sum(axis=0),axis = 1).multiply(100)
-        chart = chart.transpose()
-        ax = chart.plot.barh(stacked=True)
+        # dura = loyal.groupby(['Category','Gender']).sum('Actual Duration (min)')['Actual Duration (min)'].unstack()
+        # dura['Other'] = dura['no information']+dura['other'].fillna(0)
+        # dura = dura.drop(columns = ['no information','other'])
+        # dura.columns = ['Female','Male','Other']
+        # cols = dura.columns
+        # chart = dura
+        # chart[cols] = dura[cols].div(dura[cols].sum(axis=0),axis = 1).multiply(100)
+        # chart = chart.transpose()
+        # ax = chart.plot.barh(stacked=True)
         # with col2:
         #     fig, ax = plt.subplots()
         #     ax = plt.pie(Cate['Sub Category'].value_counts(),autopct='%1.0f%%', pctdistance=1.05,textprops={'fontsize': 5})

@@ -432,4 +432,5 @@ else:
             .explode('consequents')
             .reset_index(drop=True))
 
-    df_association_rules
+    df_association_rules[['antecedents','consequents','lift']]
+    

@@ -434,5 +434,5 @@ else:
     content=st.selectbox('Chọn cuốn sách đã đọc',df_association_rules['antecedents'].unique())
 
     list_bundle= df_association_rules[df_association_rules['antecedents'].str.contains(content)]
-    list_bundle=list_bundle[['consequents','lift']].drop_duplicates().sort_values('lift',ascending=False).reset_index(drop=True)
+    list_bundle=list_bundle[['consequents','lift']].drop_duplicates(subset='consequents').sort_values('lift',ascending=False).reset_index(drop=True)
     list_bundle

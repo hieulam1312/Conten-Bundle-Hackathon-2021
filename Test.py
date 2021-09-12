@@ -185,19 +185,20 @@ else:
     # first_listen
 
 
-    first_install=high_paid_df.copy()
-    first_install['event_name']='Regristration Date'
-    first_install['event_type']='Regristration Date'
-    first_install['Regristration Date']=pd.to_datetime(first_install['Regristration Date'])
-    first_install['time_event']=first_install['Regristration Date']
-    first_install=first_install.drop(columns='Regristration Date',axis=0)
-    first_install=first_install.drop_duplicates(subset='User_ID')
-    first_install=first_install[first_install['User_ID'].isin(list_user)]
-    first_install=first_install.drop_duplicates()
+    # first_install=high_paid_df.copy()
+    # first_install['event_name']='Regristration Date'
+    # first_install['event_type']='Regristration Date'
+    # first_install['Regristration Date']=pd.to_datetime(first_install['Regristration Date'])
+    # first_install['time_event']=first_install['Regristration Date']
+    # first_install=first_install.drop(columns='Regristration Date',axis=0)
+    # first_install=first_install.drop_duplicates(subset='User_ID')
+    # first_install=first_install[first_install['User_ID'].isin(list_user)]
+    # first_install=first_install.drop_duplicates()
         # first_install
-    data=first_install.append(first_listen).sort_values(by=['User_ID','event_type'	,'time_event'],ascending=True)
+    # data=first_install.append(first_listen).sort_values(by=['User_ID','event_type'	,'time_event'],ascending=True)
     # data=data.drop_duplicates()
     # data=data[data['User_ID']==40843]
+    data=first_listen.copy()
     data['time_event']=pd.to_datetime(data['time_event'])
     first=st.multiselect('Choosing Category',
                 data['event_name'].unique().tolist())

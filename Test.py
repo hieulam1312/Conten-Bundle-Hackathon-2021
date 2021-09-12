@@ -401,9 +401,9 @@ else:
     high_paid_group=listening_high_paid.groupby(['Playlist Name']).agg({'Actual Duration (min)':'mean', 'User_ID': 'count'})
     high_paid_group=pd.DataFrame(high_paid_group).reset_index().sort_values('Actual Duration (min)')
     high_paid_group.sort_values('User_ID')
-    c=np.quantile(high_paid_group['User_ID'],0.99)
+    # c=np.quantile(high_paid_group['User_ID'],0.99)
     q=np.quantile(high_paid_group['Actual Duration (min)'],0.75)
-    high_paid_group_80=high_paid_group[(high_paid_group['Actual Duration (min)']>=q)&(high_paid_group['User_ID']<c)]
+    high_paid_group_80=high_paid_group[(high_paid_group['Actual Duration (min)']>=q)]
     high_paid_group_80.reset_index().sort_values('User_ID')
     list_80=high_paid_group_80['Playlist Name'].unique().tolist()
     # import pandas as pd

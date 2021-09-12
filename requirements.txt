@@ -1,4 +1,3 @@
-pandas.core.arrays.sparse
 pandas
 numpy
 streamlit

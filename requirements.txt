@@ -16,3 +16,4 @@ google-cloud-bigquery
 # plotly.graph_objects
 plotly
 chart_studio
+mlxtend

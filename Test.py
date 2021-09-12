@@ -1,4 +1,5 @@
 # C:\Users\Nam Hung\OneDrive - DKSH\Documents\GitHub\Self-learn Project\Prime-data\Sample\Hackathon\Test.py
+from seaborn import categorical
 import streamlit as st
 from streamlit_lottie import st_lottie
 import pandas as pd
@@ -13,6 +14,11 @@ import plotly.graph_objects as go
 import plotly as py
 import plotly
 import pyarrow as pa
+import matplotlib.pyplot as plt
+from mlxtend.frequent_patterns import apriori
+from mlxtend.frequent_patterns import association_rules
+
+
 
 def get_df(file):
   # get extension and read file
@@ -25,46 +31,87 @@ def get_df(file):
     df = pd.read_pickle(file)
   return df
 def select(selectuser):
-        if selectuser == 'Free':
-            user = free_vip
-        elif selectuser == 'Paid':
-            user = paid_vip
-        
-        # Select Box
-        selectcluster = st.sidebar.selectbox("Chọn Cluster", user['MainCluster_Description'].unique())
-        selectcate = st.selectbox("Category", user['Category'].unique())
-        selectsubcate = st.selectbox("Sub Category", user['Sub Category'].unique())
+    if selectuser == 'Free':
+        user = free_vip
+    elif selectuser == 'Paid':
+        user = paid_vip
+    
+    # Select Box
+    selectcluster = st.sidebar.selectbox("Chọn Cluster", user['MainCluster_Description'].unique())
+    # selectcate = st.selectbox("Category", user['Category'].unique())
+    # selectsubcate = st.selectbox("Sub Category", user['Sub Category'].unique())
 
-        Cluster = user[user['MainCluster_Description'] == selectcluster]
-        Cate = Cluster[Cluster['Category']==selectcate]
-        st.write(Cate)
-        st.write(Cate.groupby('User_ID'))
+    Cluster = user[user['MainCluster_Description'] == selectcluster]
 
-        # col1, col2 = st.columns(2)
-        # with col1:
-        #     dura = loyal.groupby(['Category','Gender']).sum('Actual Duration (min)')['Actual Duration (min)'].unstack()
-        #     dura['Other'] = dura['no information']+dura['other'].fillna(0)
-        #     dura = dura.drop(columns = ['no information','other'])
-        #     dura.columns = ['Female','Male','Other']
-        #     dura = dura.transpose()
-        #     dura
+    col1, col2 = st.columns(2)
 
-        # dura = loyal.groupby(['Category','Gender']).sum('Actual Duration (min)')['Actual Duration (min)'].unstack()
-        # dura['Other'] = dura['no information']+dura['other'].fillna(0)
-        # dura = dura.drop(columns = ['no information','other'])
-        # dura.columns = ['Female','Male','Other']
-        # cols = dura.columns
-        # chart = dura
-        # chart[cols] = dura[cols].div(dura[cols].sum(axis=0),axis = 1).multiply(100)
-        # chart = chart.transpose()
-        # ax = chart.plot.barh(stacked=True)
-        # with col2:
-        #     fig, ax = plt.subplots()
-        #     ax = plt.pie(Cate['Sub Category'].value_counts(),autopct='%1.0f%%', pctdistance=1.05,textprops={'fontsize': 5})
-        #     plt.legend(Cate['Sub Category'].unique(),prop={'size': 6})
-        #     plt.title('% Sub Category')   
-        #     plt.show()
-        #     st.pyplot(fig)
+    Cate = user[user['MainCluster_Description'] == selectcluster]
+    # Cate = Cluster[Cluster['Category']==selectcluster]
+    st.subheader('a. Top sách được nghe nhiều nhất của {}'.format(selectcluster))
+    st.write(Cate.groupby('Playlist Name')['Actual Duration (min)'].sum().reset_index().sort_values(by='Actual Duration (min)').tail(10))
+
+    st.subheader('b. So sánh theo info của user {}'.format(selectcluster))
+    col1, col2 = st.columns(2)
+    loyal = user[user['MainCluster_Description'] == selectcluster]
+    dura = loyal.groupby(['Category','Gender']).sum('Actual Duration (min)')['Actual Duration (min)'].unstack()
+    dura['Other'] = dura['no information']+dura['other'].fillna(0)
+    dura = dura.drop(columns = ['no information','other'])
+    dura.columns = ['Female','Male','Other']
+    cols = dura.columns
+    chart = dura
+    chart[cols] = dura[cols].div(dura[cols].sum(axis=0),axis = 1).multiply(100)
+    chart = chart.transpose()
+    with col1:
+        ax = chart.plot.barh(stacked=True)
+        plt.show()
+        st.set_option('deprecation.showPyplotGlobalUse', False)
+        st.pyplot()
+
+    incate = loyal.groupby(['Sub Category','Gender']).sum('Actual Duration (min)')['Actual Duration (min)'].unstack()
+    
+    incate['Other'] = incate['no information']+incate['other'].fillna(0)
+    incate = incate.drop(columns = ['no information','other'])
+    incate.columns = ['Female','Male','Other']
+    cols = incate.columns
+    chart = incate
+
+    chart[cols] = incate[cols].div(incate[cols].sum(axis=0),axis = 1).multiply(100)
+    chart = chart.transpose()
+
+    cat80 = loyal.groupby(['Sub Category']).sum('Actual Duration (min)')['Actual Duration (min)']
+
+    pv1= cat80.sort_values(ascending=False).reset_index()
+    pv1=pv1.rename(columns = {'Actual Duration (min)':'Duration by segment'})
+    #find number of top 80% subcategory
+    T80=0
+    for n in range(len(pv1)):
+        if (1-T80/sum(loyal['Actual Duration (min)']))>=0.2:
+            T80=T80+pv1['Duration by segment'].iloc[n]
+        else:
+            break
+    dfc=pd.merge(loyal[['Sub Category','Gender','Actual Duration (min)']],pv1.head(n+1),on='Sub Category').sort_values('Duration by segment', ascending=False)
+    dfc.drop(columns="Duration by segment")
+    dfc = dfc.groupby(['Sub Category','Gender']).sum('Actual Duration (min)')['Actual Duration (min)'].unstack()
+    dfc['Other'] = dfc['no information']+dfc['other'].fillna(0)
+    dfc = dfc.drop(columns = ['no information','other'])
+    dfc.columns = ['Female','Male','Other']
+    cols = dfc.columns
+    chartdfc = dfc
+
+    chartdfc[cols] = dfc[cols].div(dfc[cols].sum(axis=0),axis = 1).multiply(100)
+    chartdfc = chartdfc.transpose()
+    with col2:
+        ax = chartdfc.plot.barh(stacked=True)
+        plt.show()
+        st.set_option('deprecation.showPyplotGlobalUse', False)
+        st.pyplot()
+
+
+
+    
+
+
+
 def rank(x): return x['time_event'].rank(method='first').astype(int)
 def get_next_event(x): return x['event_name'].shift(-1)
 def get_time_diff(x): return x['time_event'].shift(-1) - x['time_event']
@@ -96,6 +143,11 @@ def update_source_target(user):
         except Exception as e:
             pass
 
+def encode_data(datapoint):
+    if datapoint <= 0:
+        return 0
+    if datapoint >= 1:
+        return 1
 
 
 st.write("Hãy tải lên 1 file định dạng .csv or .xlsx để bắt đầu xem báo cáo")
@@ -166,7 +218,7 @@ else:
         # listening_high_paid
     elif  selectuser == 'Free':
         high_paid_df=free_vip[['User_ID','Regristration Date']].reset_index(drop=True)
-        listening_high_paid=free_vip[['User_ID','Listening Date','Category']].reset_index(drop=True)
+        listening_high_paid=free_vip[['User_ID','Playlist Name','PlaylistID (PK)','Actual Duration (min)','Listening Date','Category']].reset_index(drop=True)
         # order_high_paid=order     
         # high_paid_df
         # listening_high_paid
@@ -342,5 +394,42 @@ else:
                         font=dict(size=15), plot_bgcolor='white')
 
         st.plotly_chart(fig)
+    st.subheader('B. Combo nội dung') 
 
+    import numpy as np
+    # listening_high_paid
+    high_paid_group=listening_high_paid.groupby(['Playlist Name']).agg({'Actual Duration (min)':'mean', 'User_ID': 'count'})
+    high_paid_group=pd.DataFrame(high_paid_group).reset_index().sort_values('Actual Duration (min)')
+    high_paid_group.sort_values('User_ID')
+    c=np.quantile(high_paid_group['User_ID'],0.99)
+    q=np.quantile(high_paid_group['Actual Duration (min)'],0.75)
+    high_paid_group_80=high_paid_group[(high_paid_group['Actual Duration (min)']>=q)&(high_paid_group['User_ID']<c)]
+    high_paid_group_80.reset_index().sort_values('User_ID')
+    list_80=high_paid_group_80['Playlist Name'].unique().tolist()
+    # import pandas as pd
 
+    from mlxtend.frequent_patterns import apriori
+    from mlxtend.frequent_patterns import association_rules
+    listening_high_paid_=listening_high_paid[listening_high_paid['Playlist Name'].isin(list_80)]
+    # listening_high_paid_[listening_high_paid_['Playlist Name'].str.contains('Muôn kiếp')]
+    listening_high_paid_group=listening_high_paid_.groupby(['User_ID','Playlist Name'])['PlaylistID (PK)']
+
+    listening_high_paid_market = listening_high_paid_group.count().unstack().reset_index().fillna(0).set_index('User_ID')
+    # listening_high_paid_market.columns
+    listening_high_paid_market=listening_high_paid_market.applymap(encode_data)
+    # listening_high_paid_market
+    itemsets=apriori(listening_high_paid_market, min_support=0.01, use_colnames=True)
+    # itemsets
+
+    rules = association_rules(itemsets, metric="lift",min_threshold=.5)
+    a=rules[rules['lift']>1].sort_values('lift')
+    # a['antecedents']=a['antecedents'].astype(str)
+    rules["antecedents"].apply(lambda x: str(x))
+    cols = ['antecedents','consequents']
+    rules[cols] = rules[cols].applymap(lambda x: tuple(x))
+    df_association_rules = (rules.explode('antecedents')
+            .reset_index(drop=True)
+            .explode('consequents')
+            .reset_index(drop=True))
+
+    df_association_rules

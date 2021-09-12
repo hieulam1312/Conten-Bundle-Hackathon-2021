@@ -422,7 +422,7 @@ else:
     # itemsets
 
     rules = association_rules(itemsets, metric="lift",min_threshold=.5)
-    a=rules[rules['lift']>1].sort_values('lift')
+    rules=rules[rules['lift']>1].sort_values('lift')
     # a['antecedents']=a['antecedents'].astype(str)
     rules["antecedents"].apply(lambda x: str(x))
     cols = ['antecedents','consequents']

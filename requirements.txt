@@ -15,4 +15,4 @@ xlsxwriter
 google-cloud-bigquery
 # plotly.graph_objects
 plotly
-chart_studio-plotly
+chart_studio

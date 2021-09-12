@@ -24,7 +24,80 @@ def get_df(file):
   elif extension.upper() == 'PICKLE':
     df = pd.read_pickle(file)
   return df
- 
+def select(selectuser):
+        if selectuser == 'Free':
+            user = free_vip
+        elif selectuser == 'Paid':
+            user = paid_vip
+        
+        # Select Box
+        selectcluster = st.sidebar.selectbox("Chọn Cluster", user['MainCluster_Description'].unique())
+        selectcate = st.selectbox("Category", user['Category'].unique())
+        selectsubcate = st.selectbox("Sub Category", user['Sub Category'].unique())
+
+        Cluster = user[user['MainCluster_Description'] == selectcluster]
+        Cate = Cluster[Cluster['Category']==selectcate]
+        st.write(Cate)
+        st.write(Cate.groupby('User_ID'))
+
+        col1, col2 = st.columns(2)
+        with col1:
+            dura = loyal.groupby(['Category','Gender']).sum('Actual Duration (min)')['Actual Duration (min)'].unstack()
+            dura['Other'] = dura['no information']+dura['other'].fillna(0)
+            dura = dura.drop(columns = ['no information','other'])
+            dura.columns = ['Female','Male','Other']
+            dura = dura.transpose()
+            dura
+
+        dura = loyal.groupby(['Category','Gender']).sum('Actual Duration (min)')['Actual Duration (min)'].unstack()
+        dura['Other'] = dura['no information']+dura['other'].fillna(0)
+        dura = dura.drop(columns = ['no information','other'])
+        dura.columns = ['Female','Male','Other']
+        cols = dura.columns
+        chart = dura
+        chart[cols] = dura[cols].div(dura[cols].sum(axis=0),axis = 1).multiply(100)
+        chart = chart.transpose()
+        ax = chart.plot.barh(stacked=True)
+        # with col2:
+        #     fig, ax = plt.subplots()
+        #     ax = plt.pie(Cate['Sub Category'].value_counts(),autopct='%1.0f%%', pctdistance=1.05,textprops={'fontsize': 5})
+        #     plt.legend(Cate['Sub Category'].unique(),prop={'size': 6})
+        #     plt.title('% Sub Category')   
+        #     plt.show()
+        #     st.pyplot(fig)
+def rank(x): return x['time_event'].rank(method='first').astype(int)
+def get_next_event(x): return x['event_name'].shift(-1)
+def get_time_diff(x): return x['time_event'].shift(-1) - x['time_event']
+def update_source_target(user):
+        try:
+            source_index = output['nodes_dict'][user.name[1]]['sources_index'][output['nodes_dict']
+                                                                            [user.name[1]]['sources'].index(user['event_name'].values[0])]
+
+            target_index = output['nodes_dict'][user.name[1] + 1]['sources_index'][output['nodes_dict']
+                                                                                [user.name[1] + 1]['sources'].index(user['next_event'].values[0])]
+
+            if source_index in output['links_dict']:
+                if target_index in output['links_dict'][source_index]:
+
+                    output['links_dict'][source_index][target_index]['unique_users'] += 1
+                    output['links_dict'][source_index][target_index]['avg_time_to_next'] += user['time_to_next'].values[0]
+                else:
+
+                    output['links_dict'][source_index].update({target_index:
+                                                            dict(
+                                                                {'unique_users': 1,
+                                                                    'avg_time_to_next': user['time_to_next'].values[0]}
+                                                            )
+                                                            })
+            else:
+
+                output['links_dict'].update({source_index: dict({target_index: dict(
+                    {'unique_users': 1, 'avg_time_to_next': user['time_to_next'].values[0]})})})
+        except Exception as e:
+            pass
+
+
+
 st.write("Hãy tải lên 1 file định dạng .csv or .xlsx để bắt đầu xem báo cáo")
 st.write('Thứ tự lần lượt là: user_processing - cluster - listening')
 files = st.file_uploader("Tải file", type=['csv','xlsx','pickle'],accept_multiple_files=True)
@@ -74,88 +147,13 @@ else:
 
         
     st.subheader('1. Phân tích hành vi của user theo các nhóm cluster')
-    def select(selectuser):
-        if selectuser == 'Free':
-            user = free_vip
-        elif selectuser == 'Paid':
-            user = paid_vip
-        
-        # Select Box
-        selectcluster = st.sidebar.selectbox("Chọn Cluster", user['MainCluster_Description'].unique())
-        selectcate = st.selectbox("Category", user['Category'].unique())
-        selectsubcate = st.selectbox("Sub Category", user['Sub Category'].unique())
-
-        Cluster = user[user['MainCluster_Description'] == selectcluster]
-        Cate = Cluster[Cluster['Category']==selectcate]
-        st.write(Cate)
-        st.write(Cate.groupby('User_ID'))
-
-        col1, col2 = st.columns(2)
-        with col1:
-            dura = loyal.groupby(['Category','Gender']).sum('Actual Duration (min)')['Actual Duration (min)'].unstack()
-            dura['Other'] = dura['no information']+dura['other'].fillna(0)
-            dura = dura.drop(columns = ['no information','other'])
-            dura.columns = ['Female','Male','Other']
-            dura = dura.transpose()
-            dura
-
-        dura = loyal.groupby(['Category','Gender']).sum('Actual Duration (min)')['Actual Duration (min)'].unstack()
-        dura['Other'] = dura['no information']+dura['other'].fillna(0)
-        dura = dura.drop(columns = ['no information','other'])
-        dura.columns = ['Female','Male','Other']
-        cols = dura.columns
-        chart = dura
-        chart[cols] = dura[cols].div(dura[cols].sum(axis=0),axis = 1).multiply(100)
-        chart = chart.transpose()
-        ax = chart.plot.barh(stacked=True)
-        # with col2:
-        #     fig, ax = plt.subplots()
-        #     ax = plt.pie(Cate['Sub Category'].value_counts(),autopct='%1.0f%%', pctdistance=1.05,textprops={'fontsize': 5})
-        #     plt.legend(Cate['Sub Category'].unique(),prop={'size': 6})
-        #     plt.title('% Sub Category')   
-        #     plt.show()
-        #     st.pyplot(fig)
-
     
-
     select(selectuser)
-
-
 
     #B. JOURNEY CUSTOMER ANALYSIS
     st.subheader('2. Theo dõi hành trình của user')
     # order_vip=pd.merge(paid_vip,order,on='User_ID')
-    def rank(x): return x['time_event'].rank(method='first').astype(int)
-    def get_next_event(x): return x['event_name'].shift(-1)
-    def get_time_diff(x): return x['time_event'].shift(-1) - x['time_event']
-
-    def update_source_target(user):
-            try:
-                source_index = output['nodes_dict'][user.name[1]]['sources_index'][output['nodes_dict']
-                                                                                [user.name[1]]['sources'].index(user['event_name'].values[0])]
-
-                target_index = output['nodes_dict'][user.name[1] + 1]['sources_index'][output['nodes_dict']
-                                                                                    [user.name[1] + 1]['sources'].index(user['next_event'].values[0])]
-
-                if source_index in output['links_dict']:
-                    if target_index in output['links_dict'][source_index]:
-
-                        output['links_dict'][source_index][target_index]['unique_users'] += 1
-                        output['links_dict'][source_index][target_index]['avg_time_to_next'] += user['time_to_next'].values[0]
-                    else:
-
-                        output['links_dict'][source_index].update({target_index:
-                                                                dict(
-                                                                    {'unique_users': 1,
-                                                                        'avg_time_to_next': user['time_to_next'].values[0]}
-                                                                )
-                                                                })
-                else:
-
-                    output['links_dict'].update({source_index: dict({target_index: dict(
-                        {'unique_users': 1, 'avg_time_to_next': user['time_to_next'].values[0]})})})
-            except Exception as e:
-                pass
+    
 
 
     # if st.button('finding journey of customer'):

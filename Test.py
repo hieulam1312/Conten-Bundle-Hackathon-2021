@@ -48,7 +48,7 @@ def select(selectuser):
     Cate = user[user['MainCluster_Description'] == selectcluster]
     # Cate = Cluster[Cluster['Category']==selectcluster]
     st.subheader('a. Top sách được nghe nhiều nhất của {}'.format(selectcluster))
-    st.write(Cate.groupby('Playlist Name')['Actual Duration (min)'].sum().sort_values(by='Actual Duration (min)').tail(10)).reset_index()
+    st.write(Cate.groupby('Playlist Name')['Actual Duration (min)'].sum().sort_values(by='Actual Duration (min)').reset_index().tail(10))
 
     st.subheader('b. So sánh theo info của user {}'.format(selectcluster))
     col1, col2 = st.columns(2)

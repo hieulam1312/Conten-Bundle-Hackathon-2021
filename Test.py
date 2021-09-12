@@ -25,8 +25,8 @@ def get_df(file):
     df = pd.read_pickle(file)
   return df
  
-# st.write("Hãy tải lên 1 file định dạng .csv or .xlsx để bắt đầu xem báo cáo")
-# st.write('Thứ tự lần lượt là: user_processing - cluster - listening')
+st.write("Hãy tải lên 1 file định dạng .csv or .xlsx để bắt đầu xem báo cáo")
+st.write('Thứ tự lần lượt là: user_processing - cluster - listening')
 files = st.file_uploader("Tải file", type=['csv','xlsx','pickle'],accept_multiple_files=True)
 
 

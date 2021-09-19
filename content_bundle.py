@@ -17,7 +17,8 @@ import networkx.algorithms.bipartite as bipartite
 import matplotlib.pyplot as plt
 import pandas as pd
 import networkx as nx
-
+import io
+import base64
 
 # function to created table from file uploaded
 def get_df(file):
@@ -158,6 +159,17 @@ def EDA(free_vip,paid_vip,selectuser):
     st.pyplot()
 
 
+def download_link(object_to_download, download_filename, download_link_text):
+
+    if isinstance(object_to_download,pd.DataFrame):
+        # object_to_download = object_to_download.to_excel(index = False, header=True,encoding="cp1258")
+            
+        towrite = io.BytesIO()
+        downloaded_file = object_to_download.to_excel(towrite, encoding='utf-8', index=False, header=True) # write to BytesIO buffer
+        towrite.seek(0)  # reset pointer
+        b64 = base64.b64encode(towrite.read()).decode() 
+    return f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="myfilename.xlsx">Bấm vào đây để tải danh sách về</a>'
+
 
 
 def rank(x): return x['time_event'].rank(method='first').astype(int)
@@ -235,15 +247,15 @@ def basket_content(high_paid_group,listening_high_paid,selectuser):
             .explode('consequents')
             .reset_index(drop=True))
     return df_association_rules
-
-files = st.file_uploader("Tải file user -cluster - listening ", type=['csv','xlsx','pickle'],accept_multiple_files=True)
+st.sidebar.markdown('**:arrow_down_small: Upload các file sau theo thứ tự: User process - Cluster process - Listening process**')
+files = st.sidebar.file_uploader(" ", type=['csv','xlsx','pickle'],accept_multiple_files=True)
 
 if not files:
     st.warning('Upload file to continue')
 else:
     # st.set_page_config(layout="wide")
-    st.title('EXPLORE DATA')
-    st.sidebar.markdown('## Thông tin')
+    st.subheader('A. Explore Data')
+    st.sidebar.markdown('**:arrow_down_small: Thông tin**')
     selectuser = st.sidebar.selectbox("Loại User", ['Free','Paid'])   
 
     list_data=prepare_data(files,selectuser)
@@ -269,7 +281,7 @@ else:
     data=first_listen.copy()
     data['time_event']=pd.to_datetime(data['time_event'])
     first=st.multiselect('Choosing Category',
-                data['event_name'].unique().tolist())
+                data['event_name'].unique().tolist(),data['event_name'].unique().tolist())
     if not first:
         st.info('Chọn category')
     else:
@@ -385,24 +397,24 @@ else:
         st.plotly_chart(fig)
 
         st.subheader('B. Combo nội dung') 
-        st.markdown('B1. Playlist nào đang "link" được nhiều nhất?')
+        st.markdown('1. Content Bundle')
+        listening_high_paid_1 =  listening_high_paid.copy()
+        select_gender = st.selectbox("Phân loại theo giới tính", ['Overall','male', 'female'])
+        select_category = st.selectbox("Phân loại theo Category", ['Overall', 'Sách nói', 'Podcast', 'Truyện nói', 'Thiếu nhi', 'Sách tóm tắt'])
+        if selectuser == 'Free':
+            user_gender = free_vip
+        else: user_gender = paid_vip  
+        if select_gender != 'Overall':
+            user_gender = user_gender[user_gender['Gender'] == select_gender]
+            listening_high_paid_1 = listening_high_paid_1[listening_high_paid_1['User_ID'].isin(user_gender['User_ID'])]
+        if select_category != 'Overall':
+            listening_high_paid_1 = listening_high_paid_1[listening_high_paid_1['Category'] == select_category]    
+        high_paid_group=listening_high_paid_1.groupby(['Playlist Name']).agg({'Actual Duration (min)':'mean', 'User_ID': 'count'})
+        high_paid_group=listening_high_paid_1.groupby(['Playlist Name']).agg({'Actual Duration (min)':'mean', 'User_ID': 'count'})
+        df_association_rules=basket_content(high_paid_group,listening_high_paid_1,selectuser)
+        df_association_rules[['antecedents','consequents','lift','support']]
 
-        high_paid_group=listening_high_paid.groupby(['Playlist Name']).agg({'Actual Duration (min)':'mean', 'User_ID': 'count'})
-        df_association_rules=basket_content(high_paid_group,listening_high_paid,selectuser)
-        dff=df_association_rules[['antecedents','consequents']]
-        dff.columns=['antecedents','Playlist Name']
-        dff=dff.merge(listening_high_paid,how='left',on='Playlist Name')
-        dff=dff[['antecedents','Playlist Name','Category','Sub Category']].drop_duplicates()
-        dff_=dff.groupby(['antecedents','Category','Sub Category']).count().reset_index()
-        # dff_[dff_['Playlist Name']>5]
-        dff_pivot=dff_.pivot_table(index='antecedents',columns=['Category','Sub Category'],values='Playlist Name').reset_index()
-        dff_pivot=dff_pivot.rename(columns={'antecedents':'Playlist Name'})
-        dataa_df=dff_pivot.merge(listening_high_paid,how='left',on='Playlist Name')
-        dataa_df=dataa_df.drop(columns=['Actual Duration (min)','Playlist Name','User_ID','PlaylistID (PK)','Listening Date']).drop_duplicates().reset_index(drop=True)
-        dataa_df=dataa_df.replace(np.nan,0)
-        dataa_df
-
-        st.markdown('B2. Danh sách đề xuất theo playlist đã nghe')
+        st.markdown('2. Danh sách đề xuất theo playlist đã nghe')
         content=st.selectbox('Chọn playlist đã nghe',df_association_rules['antecedents'].unique())
         list_bundle= df_association_rules[df_association_rules['antecedents'].str.contains(content)]
         list_bundle=list_bundle[['antecedents','consequents','lift']].drop_duplicates(subset='consequents').sort_values('lift',ascending=False).reset_index(drop=True)
@@ -420,7 +432,9 @@ else:
         nx.draw(g, with_labels = True,node_size = 5000, font_size = 20)
         plt.show()
         st.pyplot()
-
+        st.markdown("")
+        tmp_download_link = download_link(df_association_rules, 'YOUR_DF.csv', 'Bấm vào đây để tải danh sách!')
+        st.markdown(tmp_download_link , unsafe_allow_html=True)
 
 
 

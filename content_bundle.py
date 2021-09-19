@@ -34,10 +34,10 @@ def prepare_data(files,selectuser):
 
     gender = get_df(files[0])
     # gender = gender.drop(columns = ['VIP hay Free','Year of Birth','Age Range','Age','Region','Operation Systems','Total Listerning','Total Listening Time (Min)'])
-    gender=gender.rename(columns={'UserID':'User_ID'})
+    gender=gender.rename(columns={'User_ID (PK)':'User_ID'})
     # lay data clustering
     cluster = get_df(files[1])
-    cluster=cluster.rename(columns={'UserID (PK)':'User_ID'})
+    cluster=cluster.rename(columns={'UserID (FK)':'User_ID'})
     cluster = pd.merge(cluster,gender,on = "User_ID")
     # lay data tu listening
     listening = get_df(files[2])

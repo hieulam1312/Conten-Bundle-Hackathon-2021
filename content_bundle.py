@@ -33,8 +33,8 @@ def get_df(file):
 def prepare_data(files,selectuser):
 
     gender = get_df(files[0])
-    gender = gender.drop(columns = ['VIP hay Free','Year of Birth','Age Range','Age','Region','Operation Systems','Total Listerning','Total Listening Time (Min)'])
-    gender.columns = ['User_ID','Gender','Regristration Date']
+    # gender = gender.drop(columns = ['VIP hay Free','Year of Birth','Age Range','Age','Region','Operation Systems','Total Listerning','Total Listening Time (Min)'])
+    gender=gender.rename(columns={'UserID':'User_ID'})
     # lay data clustering
     cluster = get_df(files[1])
     cluster.columns = ['User_ID', 'Type_user', 'MainCluster_ID','MainCluster_Description']

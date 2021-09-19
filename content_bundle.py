@@ -37,7 +37,7 @@ def prepare_data(files,selectuser):
     gender=gender.rename(columns={'UserID':'User_ID'})
     # lay data clustering
     cluster = get_df(files[1])
-    cluster=cluster.rename(columns={'UserID':'User_ID'})
+    cluster=cluster.rename(columns={'UserID (PK)':'User_ID'})
     cluster = pd.merge(cluster,gender,on = "User_ID")
     # lay data tu listening
     listening = get_df(files[2])

@@ -1,6 +1,6 @@
 pandas
 numpy
-streamlit
+streamlit ==0.8.0
 requests-oauthlib==1.3.0
 seaborn
 gsheetsdb==0.1.13

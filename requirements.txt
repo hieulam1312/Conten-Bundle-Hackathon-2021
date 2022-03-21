@@ -1,3 +1,19 @@
 pandas
 numpy
-streamlit ==0.69.1
+streamlit
+requests-oauthlib==1.3.0
+seaborn
+gsheetsdb==0.1.13
+streamlit_lottie
+oauth2client
+openpyxl==3.0.5
+seaborn
+gspread
+streamlit-pandas-profiling==0.1.2
+gspread-dataframe
+xlsxwriter
+google-cloud-bigquery
+# plotly.graph_objects
+plotly
+chart_studio
+mlxtend

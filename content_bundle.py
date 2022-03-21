@@ -1,6 +1,6 @@
 # from seaborn import categorical
 import streamlit as st
-from streamlit_lottie import st_lottie
+# from streamlit_lottie import st_lottie
 import pandas as pd
 import matplotlib.pyplot as plt
 from pandas.core.arrays.sparse import dtype
